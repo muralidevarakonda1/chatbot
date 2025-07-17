@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Copilot Chatbot</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow-y: auto;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 20px;
+      max-width: 80%;
+      line-height: 1.5;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #0078d4;
+      color: white;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #e1ecf4;
+      color: #333;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 10px;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 16px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005a9e;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container" id="chat">
+    <div class="message bot">👋 Hi Murali! I'm your smart Copilot-style chatbot. Ask me anything!</div>
+  </div>
+
+  <div class="input-container">
+    <input type="text" id="userInput" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
+    const messages = [];
+
+    async function sendMessage() {
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      // Add user message
+      addMessage(userText, "user");
+      messages.push({ role: "user", content: userText });
+      input.value = "";
+
+      // Add bot placeholder
+      const botMsg = document.createElement("div");
+      botMsg.className = "message bot";
+      chat.appendChild(botMsg);
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const response = await fetch("YOUR_BACKEND_URL_HERE", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ messages })
+        });
+
+        const data = await response.json();
+        const botText = data.choices[0].message.content;
+        messages.push({ role: "assistant", content: botText });
+
+        // Typing animation with markdown rendering
+        typeMarkdown(botText, botMsg);
+      } catch (error) {
+        botMsg.textContent = "⚠️ Error fetching response. Check your backend.";
+      }
+    }
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function typeMarkdown(text, container) {
+      let i = 0;
+      let markdown = "";
+      const interval = setInterval(() => {
+        markdown += text[i];
+        container.innerHTML = marked.parse(markdown);
+        i++;
+        if (i >= text.length) clearInterval(interval);
+        chat.scrollTop = chat.scrollHeight;
+      }, 20);
+    }
+  </script>
+</body>
+</html>
